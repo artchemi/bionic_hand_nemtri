@@ -30,9 +30,6 @@ tf.random.set_seed(seed)
 # os.environ['TF_DETERMINISTIC_OPS'] = '1'    # For GPU training
 # os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
 
-
-
-
 def main():
     # NOTE: Check if Utilizing GPU device
     print(tf.config.list_physical_devices('GPU'))
