@@ -17,9 +17,9 @@ import os
 import mlflow
 
 mlflow.set_experiment('Test trials')
-mlflow.tensorflow.autolog()    # Автологирование метрик и информации о модели
+mlflow.tensorflow.autolog(disable=True)    # Autologging
 
-import random    # Фиксируем сиды 
+import random    # Fix seed
 
 seed = 42
 os.environ['PYTHONHASHSEED'] = str(seed)
@@ -27,7 +27,7 @@ random.seed(seed)
 np.random.seed(seed)
 tf.random.set_seed(seed) 
 
-# os.environ['TF_DETERMINISTIC_OPS'] = '1'    # Для обучения на ГПУ - детерминированные алгоритмы
+# os.environ['TF_DETERMINISTIC_OPS'] = '1'    # For GPU training
 # os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
 
 
@@ -40,17 +40,18 @@ def main():
     # NOTE: Data Preprocessings
     
     # Get sEMG samples and labels. (shape: [num samples, 8(sensors/channels)])
-    emg, label = folder_extract(    # Затрекать данные в MLFlow
+    emg, label = folder_extract(    # TODO: Затрекать данные в MLFlow
         config.folder_path,
         exercises=config.exercises,
         myo_pref=config.myo_pref
     )
+
     # Apply Standarization to data, save collected MEAN and STANDARD DEVIATION in the dataset to json
     emg = standarization(emg, config.std_mean_path)
     # Extract sEMG signals for wanted gestures.
     gest = gestures(emg, label, targets=config.targets)
     # Perform train test split
-    train_gestures, test_gestures = train_test_split(gest)
+    train_gestures, test_gestures = train_test_split(gest, rand_seed=seed)
     
     # NOTE: optional visualization that graphs class/gesture distributions
     # plot_distribution(train_gestures)
@@ -67,7 +68,6 @@ def main():
     X_train = X_train.astype(np.float32)
     X_test = X_test.astype(np.float32)
 
-    
     print("Shape of Inputs:\n")
     print(X_train.shape)
     print(y_train.shape)
@@ -83,7 +83,7 @@ def main():
         num_classes=config.num_classes,
         filters=config.filters,
         neurons=config.neurons,
-        dropout=0.1,
+        dropout=config.dropout,
         kernel_size=config.k_size,
         input_shape=config.in_shape,
         pool_size=config.p_kernel

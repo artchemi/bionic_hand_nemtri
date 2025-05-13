@@ -7,11 +7,14 @@ from tabnanny import verbose
 import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
-import mlflow
+import keras_metrics as km
+import config
+from metrics import *
 
 
 tf.get_logger().setLevel('INFO')
 
+############################    MODEL    ############################
 
 def get_model(num_classes=4, filters=[32, 64], neurons=None, dropout=0.5,
               kernel_size=(5, 3), input_shape=(52, 8, 1), pool_size=(3, 1)):
@@ -285,11 +288,9 @@ def train_model(model, X_train, y_train, X_test, y_test, batch_size,
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=lr_schedule),
         loss='sparse_categorical_crossentropy',
-        metrics=['accuracy'],    # Добавить больше метрик, мб даже ввести кастомную.
+        metrics=['accuracy', MacroPrecision(), MacroRecall()],    # Добавить больше метрик, мб даже ввести кастомную.
     )
     
-    # Model fitting
-    # run = mlflow.start_run()
     history = model.fit(
         X_train,
         y_train,
