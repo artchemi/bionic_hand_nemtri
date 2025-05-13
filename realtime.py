@@ -257,13 +257,14 @@ class Connection:
     """
     async def select_device(self):
         print("Bluetooh LE hardware warming up...")
-        await asyncio.sleep(2.0, loop=loop)
+        # await asyncio.sleep(2.0, loop=loop)
         #Searches for BLE devices
+        print('Searching')
         devices = await discover()
        
         response = None
         for i, device in enumerate(devices):
-            if device.name == "Cyclops":
+            if device.name == "My Myo":
                 response = i
         
         if response == None:
@@ -273,6 +274,7 @@ class Connection:
         print(f"Connecting to {devices[response].name}")
         self.connected_device = devices[response]
         self.client = BleakClient(devices[response].address, loop=self.loop)
+        print('Connected')
     
 
     # Handler for collecting 2 Sequential Sequence from Myo Armaband (MyoCharacteristics0)
@@ -345,10 +347,13 @@ if __name__ == "__main__":
 
     # Create the event loop.
     loop = asyncio.get_event_loop()
+    print('get_event_loop')
     connection = Connection(loop, EMG0, EMG1, EMG2, EMG3, CONTROL) # EMG3
     try:
         asyncio.ensure_future(connection.manager())
+        print('run_forever')
         loop.run_forever()
+        print('run_forever 2')
     except KeyboardInterrupt:
         print("User stopped program.")
     finally:

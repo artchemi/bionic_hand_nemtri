@@ -12,17 +12,35 @@ from dataset import *
 from model import *
 import config
 import tensorflow as tf
+import os
+
+import mlflow
+
+mlflow.set_experiment('Test trials')
+mlflow.tensorflow.autolog()    # Автологирование метрик и информации о модели
+
+import random    # Фиксируем сиды 
+
+seed = 42
+os.environ['PYTHONHASHSEED'] = str(seed)
+random.seed(seed)
+np.random.seed(seed)
+tf.random.set_seed(seed) 
+
+# os.environ['TF_DETERMINISTIC_OPS'] = '1'    # Для обучения на ГПУ - детерминированные алгоритмы
+# os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
 
 
 
-if __name__ == "__main__":
+
+def main():
     # NOTE: Check if Utilizing GPU device
     print(tf.config.list_physical_devices('GPU'))
     
     # NOTE: Data Preprocessings
     
     # Get sEMG samples and labels. (shape: [num samples, 8(sensors/channels)])
-    emg, label = folder_extract(
+    emg, label = folder_extract(    # Затрекать данные в MLFlow
         config.folder_path,
         exercises=config.exercises,
         myo_pref=config.myo_pref
@@ -65,19 +83,39 @@ if __name__ == "__main__":
         num_classes=config.num_classes,
         filters=config.filters,
         neurons=config.neurons,
-        dropout=config.dropout,
+        dropout=0.1,
         kernel_size=config.k_size,
         input_shape=config.in_shape,
         pool_size=config.p_kernel
     )
+
+    params = {'num_classes': config.num_classes, 'n_neurons': config.neurons, 'filter_1': config.filters[0], 'filter_2': config.filters[1], 'dropout': config.dropout}
+    mlflow.log_params(params)    # Логируем параметры модели
+
+    print(cnn.summary())
     
     # Start training (And saving weights along training)
     history = train_model(
         cnn, X_train, y_train, X_test, y_test,
-        config.batch_size, save_path=config.save_path, epochs=config.epochs,
+        config.batch_size, save_path=config.save_path, epochs=config.epochs,    # epochs=config.epochs 
         patience=config.patience, lr=config.inital_lr
     )
     
+    # print(history.history)
+    # for epoch in range(config.epochs):    # range(config.epochs)
+    #     history = train_model(
+    #         cnn, X_train, y_train, X_test, y_test,
+    #         config.batch_size, save_path=config.save_path, epochs=1,    # epochs=config.epochs 
+    #         patience=config.patience, lr=config.inital_lr
+    #     )
+
+        # mlflow.log_metrics({'train_loss': history.history['loss'][0],
+        #                     'train_accuracy': history.history['accuracy'][0],
+        #                     'val_loss': history.history['val_loss'][0],
+        #                     'val_accuracy': history.history['val_accuracy'][0]},
+        #                     step=epoch+1)
+
+
     # # Visualize accuarcy and loss logs
     # plot_logs(history, acc=True, save_path=config.acc_log)
     # plot_logs(history, acc=False, save_path=config.loss_log)
@@ -112,3 +150,8 @@ if __name__ == "__main__":
     #     metrics=['accuracy'],
     # )
     # finetune_model.evaluate(X_test, y_test)
+
+
+if __name__ == '__main__':
+    with mlflow.start_run():    # Контекстный менеджер для запуска трекера
+        main()

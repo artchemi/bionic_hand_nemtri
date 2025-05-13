@@ -7,6 +7,9 @@ from tabnanny import verbose
 import tensorflow as tf
 import numpy as np
 from matplotlib import pyplot as plt
+import mlflow
+
+
 tf.get_logger().setLevel('INFO')
 
 
@@ -18,7 +21,7 @@ def get_model(num_classes=4, filters=[32, 64], neurons=None, dropout=0.5,
         Establish the architecture for the finetune-base A.I. model.
 
     Args:
-        1. num_classes (int, optional):
+        1. num_classes (i`nt, optional):
             Number of classes/gestures to classify. Defaults to 4.
             
         2. filters (1D list, optional):
@@ -282,19 +285,20 @@ def train_model(model, X_train, y_train, X_test, y_test, batch_size,
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=lr_schedule),
         loss='sparse_categorical_crossentropy',
-        metrics=['accuracy'],
+        metrics=['accuracy'],    # Добавить больше метрик, мб даже ввести кастомную.
     )
     
     # Model fitting
+    # run = mlflow.start_run()
     history = model.fit(
         X_train,
         y_train,
         batch_size=batch_size,
         epochs=epochs,
         validation_data=(X_test, y_test),
-        callbacks=callback_lists
+        callbacks=callback_lists    # callbacks=callback_lists
     )
-    
+
     return history
 
 
