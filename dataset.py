@@ -11,7 +11,7 @@ import random
 import os
 
 
-def folder_extract(root_dir, exercises=["E2"], myo_pref="elbow"):
+def folder_extract(root_dir, exercises=["E2"], myo_pref="elbow", test_exception='s1'):
     """
     Purpose:
         Extract sEMG signals data from files beneath folder 'root_dir'(from args)
@@ -48,12 +48,63 @@ def folder_extract(root_dir, exercises=["E2"], myo_pref="elbow"):
     
     emg = []
     emg_label = []
+
+    emg_test = []
+    emg_label_test = []
     
     # Parse through sub folders underneath 'root_dir'(from args)
     for folder in os.listdir(root_dir):
         subfolder_dir = root_dir + "/" + folder
         # Parse through .mat files underneath sub folders
         for file in os.listdir(subfolder_dir):
+            # NOTE: для тестового субъекта
+            if file == test_exception:
+                if file.split("_")[1] in exercises:
+                    file_path = subfolder_dir + "/" + file
+                    # Read .mat file
+                    mat = scipy.io.loadmat(file_path)
+                    
+                    # Get first 8 Myo sensors/channels closest to elbow
+                    if myo_pref == "elbow":
+                        emg_test += [sensors[:8] for sensors in mat["emg"]]
+                    # Get last 8 Myo sensors/channels closest to wrist
+                    elif myo_pref == "wrist":
+                        emg_test += [sensors[8:] for sensors in mat["emg"]]
+                    # Get all 16 Myo sensors/channels
+                    else:
+                        emg_test += mat["emg"]
+                    
+                    current_exercise = file.split("_")[1]
+                    
+                    if current_exercise == "E2":
+                        labels = mat["stimulus"].reshape(-1)
+                        new_labels = []
+                        
+                        for label in labels:
+                            if label != 0:
+                                new_labels.append(label + 12)
+                            else:
+                                new_labels.append(0)
+                        
+                        emg_label_test.extend(new_labels)
+                    
+                    elif current_exercise == "E3":
+                        labels = mat["stimulus"].reshape(-1)
+                        new_labels = []
+                        
+                        for label in labels:
+                            if label != 0:
+                                new_labels.append(label + 29)
+                            else:
+                                new_labels.append(0)
+                        
+                        emg_label_test.extend(new_labels)
+                    
+                    else:
+                        # Collect corresponding labels
+                        emg_label_test.extend(mat["stimulus"].reshape(-1))
+            
+            # NOTE: субъекты для обучения
             # Get sEMG signals of dedicated Myo armband and Exercise
             if file.split("_")[1] in exercises:
                 file_path = subfolder_dir + "/" + file
@@ -100,7 +151,7 @@ def folder_extract(root_dir, exercises=["E2"], myo_pref="elbow"):
                     # Collect corresponding labels
                     emg_label.extend(mat["stimulus"].reshape(-1))
     
-    return np.array(emg), np.array(emg_label)
+    return np.array(emg), np.array(emg_label), np.array(emg_test), np.array(emg_label_test)    # Возвращает общие сигналы/метки и для субъекта
 
 
 def standarization(emg, save_path=None):
