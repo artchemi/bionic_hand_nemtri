@@ -2,7 +2,7 @@ artifact_uri: file:///C:/Users/Daniil/armband/IEEE-NER-2023-EffiE/mlruns/1/4b131
 end_time: 1747038896508
 entry_point_name: ''
 experiment_id: '1'
-lifecycle_stage: active
+lifecycle_stage: deleted
 name: ''
 run_id: 4b131cf3196949adbc339df714da132e
 run_uuid: 4b131cf3196949adbc339df714da132e

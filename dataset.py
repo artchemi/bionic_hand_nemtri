@@ -9,7 +9,10 @@ import json
 import scipy.io
 import random
 import os
+import config
+import seaborn as sns
 
+from matplotlib.patches import ConnectionPatch
 
 def folder_extract(root_dir, exercises=["E2"], myo_pref="elbow"):
     """
@@ -157,7 +160,7 @@ def standarization(emg, save_path=None):
 
 
 def gestures(emg, label, targets=[0, 1, 3, 6],
-             relax_shrink=80000, rand_seed=2022):
+             relax_shrink=80000, rand_seed=config.SEED):
     """
     Purpose:
         Organize sEMG samples to dictionary with:
@@ -244,7 +247,7 @@ def plot_distribution(gestures):
     plt.show()
     
     
-def train_test_split(gestures, split_size=0.25, rand_seed=2022):
+def train_test_split(gestures, split_size=0.75, rand_seed=config.SEED):
     """
     Purpose:
         Perform train test split
@@ -293,18 +296,27 @@ def train_test_split(gestures, split_size=0.25, rand_seed=2022):
                 }
     """
     train_gestures = {key:None for key in gestures}
+    valid_gestures = {key:None for key in gestures}
     test_gestures = {key:None for key in gestures}
     
     # Shuffle sEMG data and split to training and testing set
+    # |---------- 75% ----------|----- 12.5% -----|----- 12.5% -----|   - signals
+    #            train          ^     valid       ^      test     
+    #                    threshold_train   threshold_valid
     for _, (label, signals) in enumerate(gestures.items()):
         random.Random(rand_seed).shuffle(signals)
         
-        threshold = int(len(signals) * split_size)
-        
-        train_gestures[label] = signals[threshold:]
-        test_gestures[label] = signals[:threshold]
+        threshold_train = int(len(signals) * split_size)
+        threshold_valid = threshold_train + int(len(signals) * 0.125)
+
+        train_gestures[label] = signals[0:threshold_train]
+        valid_gestures[label] = signals[threshold_train:threshold_valid]
+        test_gestures[label] = signals[threshold_valid:]
+
+        # threshold_valid = int(len(test_gestures[label]) * 0.5)    # Размер валидационной выборка
+        # valid_gestures[label] = signals[threshold_valid:threshold]
     
-    return train_gestures, test_gestures
+    return train_gestures, valid_gestures, test_gestures
     
     
 def apply_window(gestures, window=32, step=16):
@@ -435,3 +447,59 @@ def realtime_preprocessing(emg, params_path=None, num_classes=4, window=32, step
     inputs, outputs = apply_window(gesture, window, step)
     
     return inputs, outputs
+
+
+
+def main():
+    emg, labels = folder_extract(config.folder_path, exercises=config.exercises, myo_pref=config.myo_pref)
+    gest = gestures(emg, labels, targets=config.targets)
+
+    train_gestures, valid_gestures, test_gestures = train_test_split(gest, rand_seed=config.SEED)
+    print(train_gestures.keys())
+    X_train, y_train = apply_window(train_gestures, window=config.window, step=config.step)
+    X_valid, y_valid = apply_window(valid_gestures, window=config.window, step=config.step)
+    X_test, y_test = apply_window(test_gestures, window=config.window, step=config.step)
+
+    print(f"Train distr: {np.unique(y_train, return_counts=True)}")
+    print(f"Valid distr: {np.unique(y_valid, return_counts=True)}")
+    print(f"Test distr: {np.unique(y_test, return_counts=True)}")
+    # print(gest.shape)
+    # print(np.unique(gest, return_counts=True))
+
+    # data from https://allisonhorst.github.io/palmerpenguins/
+    
+    sns.set_theme(style='whitegrid')    # Настройка визуала
+    sns.set_palette("pastel")
+
+    species = [str(name) for name in np.unique(y_train, return_counts=True)[0]]
+    
+    penguin_means = {
+        'Train': np.unique(y_train, return_counts=True)[1],
+        'Valid': np.unique(y_valid, return_counts=True)[1],
+        'Test': np.unique(y_test, return_counts=True)[1],
+    }
+
+    x = np.arange(len(species))  # the label locations
+    width = 0.25  # the width of the bars
+    multiplier = 0
+
+    fig, ax = plt.subplots(layout='constrained', figsize=(5, 10))
+
+    for attribute, measurement in penguin_means.items():
+        offset = width * multiplier
+        rects = ax.bar(x + offset, measurement, width, label=attribute)
+        ax.bar_label(rects, padding=3)
+        multiplier += 1
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('Count')
+    ax.set_title('Sets by gesture types')
+    ax.set_xticks(x + width, species)
+    ax.legend(loc='upper right')
+    # ax.set_ylim(0, 250)
+    ax.grid(visible=False)
+
+    plt.show()
+
+if __name__ == '__main__':
+    main()

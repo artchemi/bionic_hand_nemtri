@@ -3,6 +3,9 @@
     Author: Jimmy L. @ SF State MIC Lab
     Date: Summer 2022
 """
+
+# Глобальный seed для воспроизведения модели и разделения данных
+SEED = 42
 # How many samples each sEMG image channel contains.
 window = 32
 
@@ -61,7 +64,7 @@ inital_lr = 0.2
 epochs = 200
 
 # Batch size for training the finetune-base model.
-batch_size = 384
+batch_size = 512    # 384
 
 # Paths for saving logs generated when training finetune-base model.
 acc_log = 'visuals/acc_log.jpg'

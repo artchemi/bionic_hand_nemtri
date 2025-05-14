@@ -2,7 +2,7 @@ artifact_uri: file:///C:/Users/Daniil/armband/IEEE-NER-2023-EffiE/mlruns/1/cdcca
 end_time: 1747103308811
 entry_point_name: ''
 experiment_id: '1'
-lifecycle_stage: active
+lifecycle_stage: deleted
 name: ''
 run_id: cdccaf3a048b4e0db8f44a6f165ef7a6
 run_uuid: cdccaf3a048b4e0db8f44a6f165ef7a6

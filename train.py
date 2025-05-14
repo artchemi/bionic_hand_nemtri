@@ -17,11 +17,11 @@ import os
 import mlflow
 
 mlflow.set_experiment('Test trials')
-mlflow.tensorflow.autolog(disable=True)    # Autologging
+mlflow.tensorflow.autolog(disable=False)    # Autologging
 
 import random    # Fix seed
 
-seed = 42
+seed = config.SEED
 os.environ['PYTHONHASHSEED'] = str(seed)
 random.seed(seed)
 np.random.seed(seed)
@@ -29,8 +29,6 @@ tf.random.set_seed(seed)
 
 # os.environ['TF_DETERMINISTIC_OPS'] = '1'    # For GPU training
 # os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
-
-
 
 
 def main():
@@ -88,6 +86,10 @@ def main():
         input_shape=config.in_shape,
         pool_size=config.p_kernel
     )
+
+    print(f'Размерность обучающих фичей: {X_train.shape}')
+    print(f'Размерность обучающих меток: {y_train.shape}')
+
 
     params = {'num_classes': config.num_classes, 'n_neurons': config.neurons, 'filter_1': config.filters[0], 'filter_2': config.filters[1], 'dropout': config.dropout}
     mlflow.log_params(params)    # Логируем параметры модели
