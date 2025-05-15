@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/Daniil/armband/IEEE-NER-2023-EffiE/mlruns/1/adc63c3f6f6642e4b81d201aa73acc78/artifacts
+end_time: 1747294851412
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: adc63c3f6f6642e4b81d201aa73acc78
+run_uuid: adc63c3f6f6642e4b81d201aa73acc78
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747294809188
+status: 4
+tags: []
+user_id: Daniil

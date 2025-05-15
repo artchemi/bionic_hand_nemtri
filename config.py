@@ -3,6 +3,8 @@
     Author: Jimmy L. @ SF State MIC Lab
     Date: Summer 2022
 """
+
+SEED = 42
 # How many samples each sEMG image channel contains.
 window = 32
 
@@ -61,7 +63,7 @@ inital_lr = 0.2
 epochs = 200
 
 # Batch size for training the finetune-base model.
-batch_size = 384
+batch_size = 128
 
 # Paths for saving logs generated when training finetune-base model.
 acc_log = 'visuals/acc_log.jpg'
@@ -72,6 +74,7 @@ prev_params = [num_classes, filters, neurons, dropout, k_size, in_shape, p_kerne
 
 # Path of json with MEAN and Standard Deviation for each sensor Channel.
 std_mean_path = "scaling_params.json"
+std_mean_test_path = "scaling_params_test.json"
 
 tflite_path = 'tensorflow_lite/model.tflite'
 
