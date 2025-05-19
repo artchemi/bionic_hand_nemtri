@@ -62,8 +62,8 @@ def folder_extract(root_dir, exercises=["E2"], myo_pref="elbow", test_exception=
         # Parse through .mat files underneath sub folders
         for file in os.listdir(subfolder_dir):
             # NOTE: для тестового субъекта
-            print(file)
             if test_exception in file:
+                print(f'Exception - {file}')
                 if file.split("_")[1] in exercises:
                     file_path = subfolder_dir + "/" + file
                     # Read .mat file
@@ -114,6 +114,7 @@ def folder_extract(root_dir, exercises=["E2"], myo_pref="elbow", test_exception=
             # NOTE: субъекты для обучения
             # Get sEMG signals of dedicated Myo armband and Exercise
             if file.split("_")[1] in exercises:
+                print(f'{file}')
                 file_path = subfolder_dir + "/" + file
                 # Read .mat file
                 mat = scipy.io.loadmat(file_path)
